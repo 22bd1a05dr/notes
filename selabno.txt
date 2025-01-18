@@ -1,0 +1,225 @@
+Jenkins 
+Url 
+https://github.com/sathvikt23/mavenJenkins.git
+https://github.com/sathvikt23/mavenwebJenkins.git
+**/*.war
+
+
+
+
+
+role rolename="admin-gui,manager-gui ,manager-script,manager-jmx,manager-status"/>
+  <user username= "admin" password="1234" roles = "manager-gui, admin-gui ,manager-script"/>
+</tomcat-users>
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+--><tomcat-users version="1.0" xmlns="http://tomcat.apache.org/xml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://tomcat.apache.org/xml tomcat-users.xsd">
+<user password="Saips48197$" roles="admin-gui,manager-gui ,manager-script,manager-jmx,manager-status" username="sathvikt23"/>
+<!--
+  By default, no user is included in the "manager-gui" role required
+  to operate the "/manager/html" web application.  If you wish to use this app,
+  you must define such a user - the username and password are arbitrary.
+
+
+  Built-in Tomcat manager roles:
+    - manager-gui    - allows access to the HTML GUI and the status pages
+    - manager-script - allows access to the HTTP API and the status pages
+    - manager-jmx    - allows access to the JMX proxy and the status pages
+    - manager-status - allows access to the status pages only
+
+
+  The users below are wrapped in a comment and are therefore ignored. If you
+  wish to configure one or more of these users for use with the manager web
+  application, do not forget to remove the <!.. ..> that surrounds them. You
+  will also need to set the passwords to something appropriate.
+-->
+<!--
+  <user username="admin" password="<must-be-changed>" roles="manager-gui"/>
+  <user username="robot" password="<must-be-changed>" roles="manager-script"/>
+-->
+<!--
+  The sample user and role entries below are intended for use with the
+  examples web application. They are wrapped in a comment and thus are ignored
+  when reading this file. If you wish to configure these users for use with the
+  examples web application, do not forget to remove the <!.. ..> that surrounds
+  them. You will also need to set the passwords to something appropriate.
+-->
+<!--
+  <role rolename="tomcat"/>
+  <role rolename="role1"/>
+  <user username="tomcat" password="<must-be-changed>" roles="tomcat"/>
+  <user username="both" password="<must-be-changed>" roles="tomcat,role1"/>
+  <user username="role1" password="<must-be-changed>" roles="role1"/>
+-->
+role rolename="admin-gui,manager-gui ,manager-script,manager-jmx,manager-status"/>
+  <user username= "admin" password="1234" roles = "manager-gui, admin-gui ,manager-script"/>
+</tomcat-users>
+
+
+
+
+
+pipeline {
+    agent any
+    tools{
+        maven "MAVEN_HOME"
+    }
+    stages {
+        stage('Git Repo & Clean') {
+            steps {
+               // bat 'rmdir /s /q SampleMavenJavaProject || exit 0'
+                bat 'rmdir /s /q se || exit 0'
+                bat 'git clone https://github.com/ganesh-ya12/se.git'
+                bat 'mvn clean -f se/pom.xml'
+            }
+        }
+
+        stage('Install') {
+            steps {
+                bat 'mvn install -f se/pom.xml'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                bat 'mvn test -f se/pom.xml'
+            }
+        }
+
+        stage('Package') {
+            steps {
+                bat 'mvn package -f se/pom.xml'
+            }
+        }
+    }
+}
+
+
+
+FROM nginx:latest
+COPY index.html /usr/share/nginx/html/index.html
+EXPOSE 80
+
+
+FROM tomcat:latest
+EXPOSE 70
+CMD ["catalina.sh","run"]
+
+
+FROM redis:latest
+EXPOSE 80
+
+
+# Use official Nagios image from Docker Hub
+FROM jasonrivers/nagios:latest
+
+# Set environment variables for Nagios admin user
+ENV NAGIOS_ADMIN_USER=admin
+ENV NAGIOS_ADMIN_PASSWORD=admin
+
+# Expose the Nagios web interface port
+EXPOSE 8080
+
+# Start Nagios when the container is launched
+CMD ["/usr/local/nagios/bin/nagios", "/usr/local/nagios/etc/nagios.cfg"]
+
+
+Docker build -t imagename .
+Docker run -d -p hostport:80 –name containername imagename
+Docker stop container name 
+Docker rm container name 
+Docker rmi container name 
+
+
+Docker compose ngnix and tomcat 
+
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - "8080:80"
+    restart: always
+
+  tomcat:
+    image: tomcat:latest
+    ports:
+      - "8081:8080"
+    environment:
+      - CATALINA_OPTS=-Xmx512m
+    restart: always
+
+docker-compose up -d
+docker-compose up -d --scale nginx=4
+
+Docker compose wordpress and mysql 
+
+version: '3'
+
+services:
+  # Database
+  db:
+    image: mysql:5.7
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+    networks:
+      - wpsite
+
+  # Wordpress
+  wordpress:
+    depends_on:
+      - db
+    image: wordpress:latest
+    ports:
+      - '8000:80'
+    restart: always
+    volumes: ['./:/var/www/html']
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+    networks:
+      - wpsite
+
+networks:
+  wpsite:
+volumes:
+  db_data:
+
+
+
+1) Running minikube start command 
+2) Running kubectl create deployment mynginx--image=nginx 
+3 ) Running kubectl get deployments 
+4 ) Running kubectl expose deployment mynginx--type=NodePort--port=80--target-port=80
+ 5 ) Running kubectl scale deployment mynginx--replicas=4
+ 6 )Running kubectl get deployments 
+7) Running kubectl get pods 
+8) Running kubectl port-forward svc/mynginx 8081:80
+ 9) Enter the http://localhost:8081 on the browser
+ 10 ) Kubernetes dashboard confirms the running of ngnix
